@@ -30,10 +30,11 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.panel1 = new System.Windows.Forms.Panel();
-            this.Minimize = new System.Windows.Forms.LinkLabel();
-            this.XButton = new System.Windows.Forms.LinkLabel();
+            this.Minimize = new System.Windows.Forms.Label();
+            this.XButton = new System.Windows.Forms.Label();
             this.title = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.InjectBtn = new System.Windows.Forms.Button();
             this.panel6 = new System.Windows.Forms.Panel();
             this.OSECheckbox = new System.Windows.Forms.CheckBox();
             this.NSStateCheckbox = new System.Windows.Forms.CheckBox();
@@ -50,6 +51,7 @@
             this.panel5 = new System.Windows.Forms.Panel();
             this.label11 = new System.Windows.Forms.Label();
             this.NoclipSettimgs = new System.Windows.Forms.Panel();
+            this.AutoInjectCheckbox = new System.Windows.Forms.CheckBox();
             this.FTInputBox = new System.Windows.Forms.Label();
             this.MSInputBox = new System.Windows.Forms.Label();
             this.MFInputBox = new System.Windows.Forms.Label();
@@ -64,8 +66,6 @@
             this.GameRunningLabel = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.SpacingPanel = new System.Windows.Forms.Panel();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.button1 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel6.SuspendLayout();
@@ -88,37 +88,31 @@
             // 
             // Minimize
             // 
-            this.Minimize.ActiveLinkColor = System.Drawing.Color.Red;
             this.Minimize.AutoSize = true;
             this.Minimize.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Minimize.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.Minimize.LinkColor = System.Drawing.Color.White;
+            this.Minimize.ForeColor = System.Drawing.Color.White;
             this.Minimize.Location = new System.Drawing.Point(229, -3);
             this.Minimize.Name = "Minimize";
             this.Minimize.Size = new System.Drawing.Size(20, 25);
             this.Minimize.TabIndex = 2;
             this.Minimize.TabStop = true;
             this.Minimize.Text = "-";
-            this.Minimize.VisitedLinkColor = System.Drawing.Color.White;
             this.Minimize.Click += new System.EventHandler(this.Minimize_Click);
             this.Minimize.MouseEnter += new System.EventHandler(this.Minimize_MouseEnter);
             this.Minimize.MouseLeave += new System.EventHandler(this.Minimize_MouseLeave);
             // 
             // XButton
             // 
-            this.XButton.ActiveLinkColor = System.Drawing.Color.Red;
             this.XButton.AutoSize = true;
             this.XButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.XButton.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.XButton.LinkColor = System.Drawing.Color.White;
+            this.XButton.ForeColor = System.Drawing.Color.White;
             this.XButton.Location = new System.Drawing.Point(252, 2);
             this.XButton.Name = "XButton";
             this.XButton.Size = new System.Drawing.Size(21, 20);
             this.XButton.TabIndex = 1;
             this.XButton.TabStop = true;
             this.XButton.Text = "X";
-            this.XButton.VisitedLinkColor = System.Drawing.Color.White;
-            this.XButton.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.XButton_LinkClicked);
+            this.XButton.Click += new System.EventHandler(this.XButton_Click);
             this.XButton.MouseEnter += new System.EventHandler(this.XButton_MouseEnter);
             this.XButton.MouseLeave += new System.EventHandler(this.XButton_MouseLeave);
             // 
@@ -138,7 +132,7 @@
             // 
             this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Controls.Add(this.button1);
+            this.panel2.Controls.Add(this.InjectBtn);
             this.panel2.Controls.Add(this.panel6);
             this.panel2.Controls.Add(this.ResetBtn);
             this.panel2.Controls.Add(this.panel4);
@@ -151,6 +145,23 @@
             this.panel2.Size = new System.Drawing.Size(280, 371);
             this.panel2.TabIndex = 1;
             this.panel2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseDown);
+            // 
+            // InjectBtn
+            // 
+            this.InjectBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this.InjectBtn.Enabled = false;
+            this.InjectBtn.FlatAppearance.BorderColor = System.Drawing.Color.DimGray;
+            this.InjectBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.InjectBtn.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.InjectBtn.ForeColor = System.Drawing.Color.Goldenrod;
+            this.InjectBtn.Location = new System.Drawing.Point(117, 4);
+            this.InjectBtn.Name = "InjectBtn";
+            this.InjectBtn.Size = new System.Drawing.Size(147, 37);
+            this.InjectBtn.TabIndex = 14;
+            this.InjectBtn.Text = "Inject the DLL";
+            this.InjectBtn.UseVisualStyleBackColor = false;
+            this.InjectBtn.Click += new System.EventHandler(this.InjectBtn_Click);
+            this.InjectBtn.Paint += new System.Windows.Forms.PaintEventHandler(this.InjectBtn_Paint);
             // 
             // panel6
             // 
@@ -347,7 +358,7 @@
             // 
             this.NoclipSettimgs.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
             this.NoclipSettimgs.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.NoclipSettimgs.Controls.Add(this.checkBox1);
+            this.NoclipSettimgs.Controls.Add(this.AutoInjectCheckbox);
             this.NoclipSettimgs.Controls.Add(this.FTInputBox);
             this.NoclipSettimgs.Controls.Add(this.MSInputBox);
             this.NoclipSettimgs.Controls.Add(this.MFInputBox);
@@ -363,6 +374,19 @@
             this.NoclipSettimgs.Name = "NoclipSettimgs";
             this.NoclipSettimgs.Size = new System.Drawing.Size(253, 156);
             this.NoclipSettimgs.TabIndex = 2;
+            // 
+            // AutoInjectCheckbox
+            // 
+            this.AutoInjectCheckbox.AutoSize = true;
+            this.AutoInjectCheckbox.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AutoInjectCheckbox.ForeColor = System.Drawing.Color.White;
+            this.AutoInjectCheckbox.Location = new System.Drawing.Point(8, 129);
+            this.AutoInjectCheckbox.Name = "AutoInjectCheckbox";
+            this.AutoInjectCheckbox.Size = new System.Drawing.Size(161, 19);
+            this.AutoInjectCheckbox.TabIndex = 11;
+            this.AutoInjectCheckbox.Text = "Automatically Inject DLL";
+            this.AutoInjectCheckbox.UseVisualStyleBackColor = true;
+            this.AutoInjectCheckbox.CheckedChanged += new System.EventHandler(this.AutoInjectCheckbox_CheckedChanged);
             // 
             // FTInputBox
             // 
@@ -509,32 +533,6 @@
             this.SpacingPanel.Size = new System.Drawing.Size(280, 5);
             this.SpacingPanel.TabIndex = 2;
             // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkBox1.ForeColor = System.Drawing.Color.White;
-            this.checkBox1.Location = new System.Drawing.Point(8, 129);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(114, 19);
-            this.checkBox1.TabIndex = 11;
-            this.checkBox1.Text = "Auto-Inject DLL";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            // 
-            // button1
-            // 
-            this.button1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.button1.FlatAppearance.BorderColor = System.Drawing.Color.DimGray;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.ForeColor = System.Drawing.Color.Goldenrod;
-            this.button1.Location = new System.Drawing.Point(117, 4);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(147, 37);
-            this.button1.TabIndex = 14;
-            this.button1.Text = "Inject the DLL";
-            this.button1.UseVisualStyleBackColor = false;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -569,8 +567,8 @@
 
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label title;
-        private System.Windows.Forms.LinkLabel XButton;
-        private System.Windows.Forms.LinkLabel Minimize;
+        private System.Windows.Forms.Label XButton;
+        private System.Windows.Forms.Label Minimize;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Panel SpacingPanel;
@@ -602,8 +600,8 @@
         private System.Windows.Forms.Button KysButton;
         private System.Windows.Forms.CheckBox NSStateCheckbox;
         private System.Windows.Forms.CheckBox OSECheckbox;
-        private System.Windows.Forms.CheckBox checkBox1;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.CheckBox AutoInjectCheckbox;
+        private System.Windows.Forms.Button InjectBtn;
     }
 }
 

@@ -31,15 +31,19 @@ namespace CatalystNoclip
             }
         }
 
-        Label boxToUpdate;
+        Label boxToUpdate = null;
         string updateParamName;
 
+        bool gameIsRunning = false;
+        bool gameIsLoading = false;
+        bool gameInit = true;
+
         Timer mainNoclipLoop;
-        bool gameIsRunning;
-        bool gameIsLoading;
+
         MemoryManager memory;
         PlayerInfo pinfo;
         GameInfo ginfo;
+
         string noclipDisplayState;
         string speedDisplayState;
         string noStumbleDisplayState;
@@ -48,35 +52,20 @@ namespace CatalystNoclip
         IntPtr hMapFile;
         IntPtr mapFileDataPtr;
         
-        bool noclipOn;
-        bool noclipFT;
-        bool allowAutoNC;
-        bool noStumble;
+        bool noclipOn = false;
+        bool noclipFT = false;
+        bool allowAutoNC = false;
+        bool noStumble = false;
 
-        Vec3 pos;
-        Vec3 lastpos;
-        Vec3 velocity;
-        int speed;
+        Vec3 pos = Vec3.Zero;
+        Vec3 lastpos = Vec3.Zero;
+        Vec3 velocity = Vec3.Zero;
+        int speed = 32;
 
-        static readonly long freq = Stopwatch.Frequency;
+        bool dllInjected = false;
 
         public MainForm()
         {
-            boxToUpdate = null;
-
-            noclipOn = false;
-            noclipFT = false;
-            allowAutoNC = false;
-            noStumble = false;
-
-            lastpos = Vec3.Zero;
-            velocity = Vec3.Zero;
-            pos = Vec3.Zero;
-            speed = 32;
-
-            gameIsRunning = false;
-            gameIsLoading = false;
-
             mainNoclipLoop = new Timer();
             mainNoclipLoop.Interval = 20;
             mainNoclipLoop.Tick += MainAppLoop;
@@ -164,6 +153,10 @@ namespace CatalystNoclip
                 gameIsRunning = false;
                 memory.ReleaseProcess();
 
+                dllInjected = false;
+                InjectBtn.Enabled = false;
+                gameInit = true;
+
                 GameRunningLabel.Text = "NOT RUNNING";
                 GameRunningLabel.ForeColor = Color.Red;
 
@@ -178,8 +171,6 @@ namespace CatalystNoclip
                     gameIsRunning = true;
                     memory.OpenProcess("MirrorsEdgeCatalyst");
                     lastIter = true;
-
-                    Overlay.Enable(true);
                 }
 
                 bool loading = false;
@@ -199,18 +190,33 @@ namespace CatalystNoclip
                     GameRunningLabel.ForeColor = Color.Goldenrod;
                     GameRunningLabel.Text = "LOADING";
 
-                    noclipOn = false;
-                    noclipFT = false;
+                    InjectBtn.Enabled = false;
                 }
                 else if (!loading && (gameIsLoading || lastIter))
                 {
                     gameIsLoading = false;
                     GameRunningLabel.ForeColor = Color.Green;
                     GameRunningLabel.Text = "RUNNING";
+
+                    if (!dllInjected)
+                    {
+                        InjectBtn.Enabled = true;
+                    }
                 }
 
                 if (!gameIsLoading)
                 {
+                    if (gameInit)
+                    {
+                        Overlay.Enable(true);
+                        gameInit = false;
+                    }
+
+                    if (!dllInjected && Properties.Settings.Default.AutoInject)
+                    {
+                        InjectDLL();
+                    }
+
                     ToggleLoop();
                 }
 
@@ -310,20 +316,14 @@ namespace CatalystNoclip
 
             mainNoclipLoop.Start();
 
-            UpdateSettings();
+            UpdateSettingsUI();
             InputController.MakeProcessSpecific("MirrorsEdgeCatalyst");
             InputController.EnableInputHook();
 
             Overlay.Enable(true);
         }
 
-        private void XButton_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            /* For some reason the process refuses to close unless I force quit */
-            ForceClose();
-        }
-
-        private void ForceClose()
+        private void XButton_Click(object sender, EventArgs e)
         {
             mainNoclipLoop.Stop();
 
@@ -331,39 +331,53 @@ namespace CatalystNoclip
             InputController.DisableInputHook();
             memory.ReleaseProcess();
 
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.FileName = "cmd.exe";
-            startInfo.Arguments = "/C taskkill /F /IM CatalystNoclip.exe";
-            process.StartInfo = startInfo;
-            process.Start();
+            /* For some reason the process refuses to close unless I force quit */
+            Process.GetCurrentProcess().Kill();
         }
 
         private void XButton_MouseEnter(object sender, EventArgs e)
         {
-            XButton.LinkColor = Color.Red;
+            XButton.ForeColor = Color.Red;
         }
 
         private void XButton_MouseLeave(object sender, EventArgs e)
         {
-            XButton.LinkColor = Color.White;
+            XButton.ForeColor = Color.White;
         }
 
         private void Minimize_MouseEnter(object sender, EventArgs e)
         {
-            Minimize.LinkColor = ForeColor;
+            Minimize.ForeColor = ForeColor;
         }
 
         private void Minimize_MouseLeave(object sender, EventArgs e)
         {
-            Minimize.LinkColor = Color.White;
+            Minimize.ForeColor = Color.White;
         }
 
         private void Minimize_Click(object sender, EventArgs e)
         {
             WindowState = FormWindowState.Minimized;
+        }
+
+        private void InjectBtn_Click(object sender, EventArgs e)
+        {
+            InjectDLL();
+        }
+
+        // Remove the black color of disabled text since 
+        // it doesn't go with the background
+        private void InjectBtn_Paint(object sender, PaintEventArgs e)
+        {
+            StringFormat sf = Utilities.ContentAlignToSF(InjectBtn.TextAlign);
+
+            Color c = InjectBtn.Enabled ? InjectBtn.ForeColor : Color.DimGray;
+            SolidBrush b = new SolidBrush(c);
+
+            e.Graphics.DrawString(InjectBtn.Text, InjectBtn.Font, b, e.ClipRectangle, sf);
+
+            b.Dispose();
+            sf.Dispose();
         }
 
         #endregion
@@ -372,12 +386,21 @@ namespace CatalystNoclip
 
         private void InjectDLL()
         {
+            if (dllInjected) return;
+
             DllInjectionResult r = DllInjector.Instance.Inject("MirrorsEdgeCatalyst", "NoclipInjectedDLL.dll");
             if (r == DllInjectionResult.Success)
+            {
                 MessageBox.Show(this, "Dll sucessfully injected!", "MEC: Noclip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                dllInjected = true;
+                InjectBtn.Enabled = false;
+
+                return;
+            }
             else
             {
                 MessageBox.Show(this, "Dll could not be injected, reason: " + r.ToString(), "MEC: Noclip", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
         }
 
@@ -425,7 +448,7 @@ namespace CatalystNoclip
 
         #region settings & hotkeys
 
-        private void UpdateSettings()
+        private void UpdateSettingsUI()
         {
             RTInputBox.Text = ((DIKCode)Properties.Settings.Default.ToggleNC).ToString();
             FTInputBox.Text = ((DIKCode)Properties.Settings.Default.SwitchNCMode).ToString();
@@ -433,6 +456,7 @@ namespace CatalystNoclip
             MSInputBox.Text = ((DIKCode)Properties.Settings.Default.SlowerHotkey).ToString();
             NSInputBox.Text = ((DIKCode)Properties.Settings.Default.NSHotkey).ToString();
             AutoNoclipCheckbox.Checked = Properties.Settings.Default.AutoNoclip;
+            AutoInjectCheckbox.Checked = Properties.Settings.Default.AutoInject;
 
             OverlayCheckbox.Checked = Properties.Settings.Default.ShowOverlay;
             NCStateCheckbox.Checked = Properties.Settings.Default.ShowNCState;
@@ -458,7 +482,7 @@ namespace CatalystNoclip
             Properties.Settings.Default.OnlyShowWhenTrue = true;
             Properties.Settings.Default.Save();
 
-            UpdateSettings();
+            UpdateSettingsUI();
         }
 
         private void SetHotkey(Label box, string paramName)
@@ -550,6 +574,14 @@ namespace CatalystNoclip
             CancelSetHotkey();
 
             Properties.Settings.Default.OnlyShowWhenTrue = OSECheckbox.Checked;
+            Properties.Settings.Default.Save();
+        }
+
+        private void AutoInjectCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            CancelSetHotkey();
+
+            Properties.Settings.Default.AutoInject = AutoInjectCheckbox.Checked;
             Properties.Settings.Default.Save();
         }
 

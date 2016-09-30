@@ -154,5 +154,17 @@ namespace CatalystNoclip.Properties {
                 this["OnlyShowWhenTrue"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AutoInject {
+            get {
+                return ((bool)(this["AutoInject"]));
+            }
+            set {
+                this["AutoInject"] = value;
+            }
+        }
     }
 }
