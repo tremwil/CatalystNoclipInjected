@@ -109,7 +109,7 @@ namespace CatalystNoclip
                 SetNoclip(true);
 
             noclipFT = state;
-            ginfo.SetTimescale(state ? 0 : 1);
+            if (gameIsRunning) ginfo.SetTimescale(state ? 0 : 1);
             InputController.SetToggledFlag((DIKCode)Properties.Settings.Default.SwitchNCMode, state);
         }
 
@@ -155,6 +155,7 @@ namespace CatalystNoclip
 
                 dllInjected = false;
                 InjectBtn.Enabled = false;
+                SetNoclip(false);
                 gameInit = true;
 
                 GameRunningLabel.Text = "NOT RUNNING";
@@ -216,8 +217,10 @@ namespace CatalystNoclip
                     {
                         InjectDLL();
                     }
-
-                    ToggleLoop();
+                    if (dllInjected)
+                    {
+                        ToggleLoop();
+                    }
                 }
 
                 // Handle overlay text
@@ -319,8 +322,6 @@ namespace CatalystNoclip
             UpdateSettingsUI();
             InputController.MakeProcessSpecific("MirrorsEdgeCatalyst");
             InputController.EnableInputHook();
-
-            Overlay.Enable(true);
         }
 
         private void XButton_Click(object sender, EventArgs e)
@@ -391,7 +392,10 @@ namespace CatalystNoclip
             DllInjectionResult r = DllInjector.Instance.Inject("MirrorsEdgeCatalyst", "NoclipInjectedDLL.dll");
             if (r == DllInjectionResult.Success)
             {
-                MessageBox.Show(this, "Dll sucessfully injected!", "MEC: Noclip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                if (!Properties.Settings.Default.AutoInject)
+                {
+                    MessageBox.Show(this, "Dll sucessfully injected!", "MEC: Noclip", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
                 dllInjected = true;
                 InjectBtn.Enabled = false;
 
